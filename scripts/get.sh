@@ -1,13 +1,15 @@
 #!/bin/bash
 
-# TODO: dir trick for `cat token`
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+BASE="$DIR/.."
 
 port=${PORT:=8080}
 type=${1:-"device"}
 id=${2:-"0"}
 
-if [ -f 'token' ]; then
-    token=$(cat token)
+
+if [ -f "$BASE/token" ]; then
+    token=$(cat "$BASE/token")
 else
     token="$3"
 fi

@@ -2,12 +2,14 @@ const express = require('express');
 const fs = require('fs');
 const assert = require('assert');
 const { randomBytes } = require('bcrypto');
+const bodyParser = require('body-parser');
 
 const PORT = parseInt(process.env.PORT, 10) || 8080;
 
 class KeyServer {
   constructor() {
     this.app = express();
+    this.app.use(bodyParser.json({ extended: true }));
     this.store = {
       user: {},
       device: {}
@@ -59,6 +61,8 @@ class KeyServer {
     this.app.get('/', (req, res) => res.json({ message: 'success' }));
     this.app.get('/pubkey/:type/:id', this.getPubkey)
     this.app.post('/pubkey/:type/:id', this.addPubkey)
+    // TODO: auth this endpoint
+    this.app.get('/all', (req, res) => res.json({ data: this.store }))
   }
 
   auth(req, res) {
@@ -76,11 +80,15 @@ class KeyServer {
     assert(type in this.store);
     // stringify?
     const key = this.store[type][id];
-    res.json({ pubkey: key })
+    if (key === undefined) {
+      res.status(404).json({ message: 'not found' })
+    } else {
+      res.json({ pubkey: key })
+    }
   }
 
   addPubkey(req, res) {
-    const { params, query } = req;
+    const { params, query, body } = req;
     const { type, id } = params;
     const { key } = body;
 
